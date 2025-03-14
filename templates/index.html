@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Speech Recognition</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        label {
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: block;
+            color: #555;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 40px;
+        }
+
+        #transcription {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            margin-top: 10px;
+            font-size: 18px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+    <script>
+        let listening = {{ listening|tojson }};
+        
+        // Function to start or stop listening based on the button state
+        function toggleListening() {
+            const micIndex = document.getElementById('mic_index').value;
+            if (listening) {
+                // Stop listening if already listening
+                fetch('/', {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        'mic_index': micIndex
+                    }),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(response => response.text()).then(data => {
+                    document.getElementById('transcription').innerHTML = "Stopped listening.";
+                    listening = false;
+                    // Update button text to "Start Listening"
+                    document.getElementById('listen-btn').textContent = "Start Listening";
+                });
+            } else {
+                // Start listening
+                fetch('/', {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        'mic_index': micIndex
+                    }),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(response => response.text()).then(data => {
+                    listening = true;
+                    getTranscription();
+                    // Update button text to "Stop Listening"
+                    document.getElementById('listen-btn').textContent = "Stop Listening";
+                });
+            }
+        }
+
+        // Function to fetch the latest transcription
+        function getTranscription() {
+            if (listening) {
+                fetch('/get_transcription')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('transcription').innerHTML = data.transcription;
+                        setTimeout(getTranscription, 100); // Keep fetching every 100ms
+                    });
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Real-time Voice Recognition</h1>
+    <div class="form-container">
+        <form method="POST">
+            <label for="mic_index">Select Microphone:</label>
+            <select id="mic_index" name="mic_index" required>
+                {% for index, name in mic_list %}
+                    <option value="{{ index }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" id="listen-btn" onclick="toggleListening()">
+                {% if listening %}
+                    Stop Listening
+                {% else %}
+                    Start Listening
+                {% endif %}
+            </button>
+        </form>
+    </div>
+
+    <h2>Current Transcription:</h2>
+    <div id="transcription" class="transcription-container">
+        {{ recognized_text }}
+    </div>
+</body>
+</html>
+

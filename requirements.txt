@@ -1,0 +1,12 @@
+numpy
+tqdm
+pyaudio
+soundfile
+SpeechRecognition
+requests
+psutil
+onnx
+onnxruntime
+ffmpeg-python
+transformers
+
