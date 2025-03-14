@@ -34,7 +34,12 @@ chmod +x install.sh
 ./install.sh
 ```
 
-### 4. Run Application
+### 4. Export XDG_RUNTIME_DIR environment variable
+```
+export XDG_RUNTIME_DIR=/run/user/0
+```
+
+### 5. Run Application
 ```
 python3.10 app.py
 ```
