@@ -12,11 +12,6 @@ app = Flask(__name__)
 is_listening = False
 recognized_text = ""
 
-# Set logging level to suppress unnecessary logs but retain important logs
-logging.basicConfig(level=logging.INFO)  # Log at INFO level
-werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.ERROR)  # Suppress werkzeug logs except errors
-
 # Function to continuously listen to the microphone
 def listen_to_microphone(mic_index):
     global recognized_text, is_listening
